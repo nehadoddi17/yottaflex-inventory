@@ -1,7 +1,10 @@
 
 import pytest
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from app.services.inventory import calculate_atp
+from app.services.movements import record_movement
 
 
 def test_basic_atp_calculation():
@@ -45,3 +48,32 @@ def test_impossible_stock_allocation():
             blocked=2,
             safety_stock=1,
         )
+
+
+def test_sale_cannot_use_blocked_stock():
+    session = MagicMock()
+
+    balance = SimpleNamespace(
+        sku_id=1,
+        location_id=1,
+        on_hand=10,
+        reserved=0,
+        blocked=6,
+        safety_stock=0,
+    )
+
+    session.scalar.return_value = balance
+
+    with pytest.raises(ValueError, match="Sale exceeds available stock"):
+        record_movement(
+            session=session,
+            sku_id=1,
+            location_id=1,
+            movement_type="sale",
+            quantity=5,
+        )
+
+    assert balance.on_hand == 10
+    assert balance.blocked == 6
+    session.rollback.assert_called_once()
+    session.commit.assert_not_called()

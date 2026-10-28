@@ -199,7 +199,23 @@ class Shipment(Base):
     received_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+class ShipmentLine(Base):
+    __tablename__ = "shipment_lines"
+    __table_args__ = (
+        CheckConstraint(
+            "quantity > 0",
+            name="ck_shipment_line_quantity",
+        ),
+    )
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shipment_id: Mapped[int] = mapped_column(
+        ForeignKey("shipments.id"), nullable=False
+    )
+    sku_id: Mapped[int] = mapped_column(
+        ForeignKey("skus.id"), nullable=False
+    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
 
 class ReplenishmentRule(Base):
     __tablename__ = "replenishment_rules"

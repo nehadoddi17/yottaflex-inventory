@@ -74,6 +74,10 @@ def reconcile_inventory(
             expected_on_hand += movement.quantity
         elif movement.movement_type in DECREASE_TYPES:
             expected_on_hand -= movement.quantity
+        elif movement.movement_type == "transfer_out":
+            expected_on_hand -= movement.quantity
+        elif movement.movement_type == "transfer_in":
+            expected_on_hand += movement.quantity
         elif movement.movement_type == "damage":
             # Damaged units remain physically on hand but become blocked.
             continue

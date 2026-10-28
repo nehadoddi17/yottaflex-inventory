@@ -1,10 +1,16 @@
 
+
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import InventoryBalance, Reservation, OrderLine
+from app.models import (
+    InventoryBalance,
+    Order,
+    OrderLine,
+    Reservation,
+)
 
 
 def create_reservation(
@@ -34,9 +40,25 @@ def create_reservation(
         if order_line is None:
             raise LookupError("Order line not found.")
 
-        if quantity > order_line.quantity:
-            raise ValueError("Reservation exceeds the order-line quantity.")
+        order = session.get(Order, order_line.order_id)
 
+        if order is None:
+            raise LookupError("Order not found.")
+
+        # Check the total quantity already reserved for this order line.
+        active_reserved = session.scalar(
+            select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
+                Reservation.order_line_id == order_line_id,
+                Reservation.status == "active",
+            )
+        ) or 0
+
+        if active_reserved + quantity > order_line.quantity:
+            raise ValueError(
+                "Total active reservations exceed the order-line quantity."
+            )
+
+        # Lock the inventory balance while checking available stock.
         balance = session.scalar(
             select(InventoryBalance)
             .where(
@@ -59,11 +81,31 @@ def create_reservation(
         if quantity > available:
             raise ValueError("Insufficient available stock to reserve.")
 
+        # Use the order code and the required reservation ID format.
+        # Choose the next suffix to avoid duplicate reservation codes.
+        reservation_prefix = f"RES-{order.order_code}-"
+
+        existing_codes = session.scalars(
+            select(Reservation.reservation_code).where(
+                Reservation.reservation_code.like(
+                    f"{reservation_prefix}%"
+                )
+            )
+        ).all()
+
+        suffix_numbers = []
+
+        for code in existing_codes:
+            suffix = code.removeprefix(reservation_prefix)
+
+            if suffix.isdigit():
+                suffix_numbers.append(int(suffix))
+
+        next_suffix = max(suffix_numbers, default=0) + 1
+        reservation_code = f"{reservation_prefix}{next_suffix:02d}"
+
         reservation = Reservation(
-            reservation_code=(
-                f"RES-LINE-{order_line_id}-"
-                f"{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
-            ),
+            reservation_code=reservation_code,
             order_line_id=order_line.id,
             sku_id=order_line.sku_id,
             location_id=location_id,
@@ -112,12 +154,13 @@ def expire_reservations(session: Session) -> int:
 
             if balance is None:
                 raise LookupError(
-                    f"Balance missing for reservation {reservation.reservation_code}"
+                    f"Balance missing for reservation "
+                    f"{reservation.reservation_code}"
                 )
 
             if balance.reserved < reservation.quantity:
                 raise ValueError(
-                    f"Reserved balance is inconsistent for "
+                    "Reserved balance is inconsistent for "
                     f"{reservation.reservation_code}"
                 )
 
