@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YottaFlex | Inventory Control</title>
+    <style>
+        :root {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: #172033;
+            background: #f5f7fb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { margin: 0; }
+
+        header {
+            background: #101b35;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        header h1 { margin: 0; font-size: 21px; }
+        header p { margin: 5px 0 0; color: #b8c5dc; font-size: 13px; }
+
+        .status {
+            color: #baf4d0;
+            font-size: 12px;
+            border: 1px solid #356b58;
+            background: #183c35;
+            padding: 8px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        main { max-width: 1200px; margin: 32px auto; padding: 0 22px; }
+
+        .intro {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        h2 { margin: 0 0 7px; font-size: 25px; }
+        .muted { color: #738096; font-size: 14px; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .card, .panel {
+            background: white;
+            border: 1px solid #e4e9f1;
+            border-radius: 14px;
+            padding: 21px;
+            box-shadow: 0 4px 16px #1b2b4b08;
+        }
+
+        .card-label { color: #738096; font-size: 13px; }
+        .card-value { font-size: 29px; font-weight: 700; margin: 12px 0 5px; }
+        .card-note { color: #8a96a9; font-size: 12px; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .panel h3 { margin: 0 0 8px; font-size: 17px; }
+        .panel > p { margin: 0 0 20px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 14px 0 7px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #d8deea;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 16px;
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            background: #3459e6;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover { background: #2646c7; }
+        button:disabled { opacity: .6; cursor: wait; }
+
+        .result {
+            margin-top: 17px;
+            border-radius: 9px;
+            background: #f2f5fb;
+            padding: 14px;
+            min-height: 48px;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+
+        .result:empty::before {
+            content: "Results will appear here.";
+            color: #8995a8;
+        }
+
+        .atp-result {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .metric {
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e6f0;
+            border-radius: 8px;
+        }
+
+        .metric span { display: block; color: #738096; font-size: 12px; }
+        .metric strong { display: block; margin-top: 5px; font-size: 19px; }
+
+        footer {
+            text-align: center;
+            color: #8995a8;
+            font-size: 12px;
+            padding: 25px;
+        }
+
+        @media (max-width: 850px) {
+            .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            header { align-items: flex-start; flex-direction: column; }
+            .cards { gap: 10px; }
+            .card, .panel { padding: 15px; }
+            .card-value { font-size: 24px; }
+            main { padding: 0 14px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>YottaFlex <span style="color:#8faaff">Inventory</span></h1>
+            <p>Unified inventory control and reconciliation</p>
+        </div>
+        <div class="status" id="apiStatus">Checking API...</div>
+    </header>
+
+    <main>
+        <section class="intro">
+            <div>
+                <h2>Inventory overview</h2>
+                <div class="muted">Monitor stock availability and investigate discrepancies.</div>
+            </div>
+        </section>
+
+        <section class="cards">
+            <article class="card">
+                <div class="card-label">On-hand stock</div>
+                <div class="card-value" id="onHand">—</div>
+                <div class="card-note">Selected SKU and location</div>
+            </article>
+            <article class="card">
+                <div class="card-label">Reserved stock</div>
+                <div class="card-value" id="reserved">—</div>
+                <div class="card-note">Units committed to orders</div>
+            </article>
+            <article class="card">
+                <div class="card-label">Blocked stock</div>
+                <div class="card-value" id="blocked">—</div>
+                <div class="card-note">Unavailable inventory</div>
+            </article>
+            <article class="card">
+                <div class="card-label">Available to promise</div>
+                <div class="card-value" id="atp">—</div>
+                <div class="card-note">After reserves and safety stock</div>
+            </article>
+        </section>
+
+        <section class="content-grid">
+            <article class="panel">
+                <h3>Stock lookup</h3>
+                <p class="muted">Retrieve live inventory data from the API.</p>
+
+                <form id="atpForm">
+                    <label for="skuId">SKU ID</label>
+                    <input id="skuId" type="number" min="1" value="1" required>
+
+                    <label for="locationId">Location ID</label>
+                    <input id="locationId" type="number" min="1" value="1" required>
+
+                    <button id="lookupButton" type="submit">Fetch inventory</button>
+                </form>
+
+                <div id="atpResult" class="result" aria-live="polite"></div>
+            </article>
+
+            <article class="panel">
+                <h3>Inventory reconciliation</h3>
+                <p class="muted">Compare recorded stock with movement history.</p>
+
+                <form id="reconcileForm">
+                    <label for="reconcileSku">SKU ID</label>
+                    <input id="reconcileSku" type="number" min="1" value="1" required>
+
+                    <label for="reconcileLocation">Location ID</label>
+                    <input id="reconcileLocation" type="number" min="1" value="1" required>
+
+                    <button id="reconcileButton" type="submit">Run reconciliation</button>
+                </form>
+
+                <div id="reconcileResult" class="result" aria-live="polite"></div>
+            </article>
+        </section>
+    </main>
+
+    <footer>YottaFlex Inventory Management · Connected to FastAPI</footer>
+
+    <script>
+        const apiStatus = document.getElementById("apiStatus");
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, options);
+            const body = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const detail = body.detail || `Request failed (${response.status})`;
+                throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+            }
+            return body;
+        }
+
+        async function checkApi() {
+            try {
+                await requestJson("/health");
+                apiStatus.textContent = "● API connected";
+                apiStatus.style.color = "#baf4d0";
+            } catch (error) {
+                apiStatus.textContent = "● API unavailable";
+                apiStatus.style.color = "#ffd0d0";
+            }
+        }
+
+        function showError(target, error) {
+            target.textContent = `Error: ${error.message}`;
+        }
+
+        document.getElementById("atpForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const skuId = document.getElementById("skuId").value;
+            const locationId = document.getElementById("locationId").value;
+            const result = document.getElementById("atpResult");
+            const button = document.getElementById("lookupButton");
+
+            button.disabled = true;
+            result.textContent = "Loading inventory...";
+
+            try {
+                const data = await requestJson(
+                    `/inventory/atp?sku_id=${encodeURIComponent(skuId)}&location_id=${encodeURIComponent(locationId)}`
+                );
+
+                document.getElementById("onHand").textContent = data.on_hand;
+                document.getElementById("reserved").textContent = data.reserved;
+                document.getElementById("blocked").textContent = data.blocked;
+                document.getElementById("atp").textContent = data.available_to_promise;
+
+                result.innerHTML = `
+                    <div class="atp-result">
+                        <div class="metric"><span>Safety stock</span><strong>${data.safety_stock}</strong></div>
+                        <div class="metric"><span>Approved inbound</span><strong>${data.approved_inbound}</strong></div>
+                    </div>
+                    <p>SKU ${data.sku_id} · Location ${data.location_id}</p>
+                `;
+            } catch (error) {
+                showError(result, error);
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        document.getElementById("reconcileForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const skuId = document.getElementById("reconcileSku").value;
+            const locationId = document.getElementById("reconcileLocation").value;
+            const result = document.getElementById("reconcileResult");
+            const button = document.getElementById("reconcileButton");
+
+            button.disabled = true;
+            result.textContent = "Reconciling inventory...";
+
+            try {
+                const data = await requestJson(
+                    `/inventory/reconcile?sku_id=${encodeURIComponent(skuId)}&location_id=${encodeURIComponent(locationId)}`
+                );
+                
+                const statusColor = data.status === "matched" ? "#16794b" : "#b42318";
+                const statusLabel = data.status === "matched" ? "Inventory matched" : "Discrepancy detected";
+
+                result.innerHTML = `
+                    <div style="background:white;border:1px solid #e0e6f0;border-radius:8px;padding:14px;">
+                        <div style="font-weight:700;color:${statusColor};margin-bottom:12px;">
+                            ${statusLabel}
+                        </div>
+                        <div class="atp-result">
+                            <div class="metric">
+                                <span>Recorded stock</span>
+                                <strong>${data.recorded_on_hand}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Expected stock</span>
+                                <strong>${data.expected_on_hand}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Discrepancy</span>
+                                <strong>${data.discrepancy}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>SKU / Location</span>
+                                <strong>${data.sku_id} / ${data.location_id}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                showError(result, error);
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        checkApi();
+    </script>
+</body>
+</html>

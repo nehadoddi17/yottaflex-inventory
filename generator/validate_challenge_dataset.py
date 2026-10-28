@@ -230,6 +230,7 @@ def validate(folder):
     ):
         errors.append("GT-002 does not exceed ATP")
 
+
     # GT-003: Fixture references a real balance with blocked stock.
     case = cases_by_id.get("GT-003")
     if case is None:
@@ -237,12 +238,41 @@ def validate(folder):
     else:
         key = (case["source_sku_id"], case["source_location_id"])
         balance = balances_by_key.get(key)
+
         if balance is None:
             errors.append("GT-003 references an unknown balance")
-        elif int(balance["blocked"]) <= 0:
-            errors.append("GT-003 balance has no blocked stock")
-        elif int(case["test_quantity"]) <= 0:
-            errors.append("GT-003 attempted allocation is not positive")
+        else:
+            blocked = int(balance["blocked"])
+            on_hand = int(balance["on_hand"])
+            reserved = int(balance["reserved"])
+            safety_stock = int(balance["safety_stock"])
+            test_quantity = int(case["test_quantity"])
+
+            if blocked <= 0:
+                errors.append("GT-003 balance has no blocked stock")
+
+            if test_quantity <= 0:
+                errors.append("GT-003 attempted allocation is not positive")
+
+            if int(case["blocked_quantity"]) != blocked:
+                errors.append("GT-003 blocked quantity does not match balance")
+
+            if int(case["expected_on_hand"]) != on_hand:
+                errors.append("GT-003 expected on-hand does not match balance")
+
+            available_unblocked = (
+                on_hand - reserved - blocked - safety_stock
+            )
+
+            if available_unblocked < test_quantity:
+                errors.append(
+                    "GT-003 fixture cannot distinguish blocked-stock "
+                    "allocation from insufficient available stock"
+                )
+
+            if case["test_condition"] != "allocation_source_is_blocked_stock":
+                errors.append("GT-003 test condition is incorrect")
+
 
     # GT-004: The actual shipment timestamps must be out of order.
     case = cases_by_id.get("GT-004")

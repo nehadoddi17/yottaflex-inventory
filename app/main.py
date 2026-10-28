@@ -14,11 +14,27 @@ from pydantic import BaseModel, Field
 from app.services.reservations import create_reservation, expire_reservations
 from app.services.reconciliation import reconcile_inventory
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 app = FastAPI(
     title="YottaFlex Inventory Management API",
     description="Inventory tracking, reconciliation and exception management",
     version="1.0.0",
 )
+BASE_DIR = Path(__file__).resolve().parent
+
+app.mount(
+    "/static",
+    StaticFiles(directory=BASE_DIR / "static"),
+    name="static",
+)
+
+
+@app.get("/", include_in_schema=False)
+def dashboard():
+    return FileResponse(BASE_DIR / "static" / "index.html")
 
 
 @app.get("/health")
