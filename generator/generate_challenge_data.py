@@ -112,31 +112,46 @@ def generate_data(output_dir, num_skus=5000, num_locations=100,
                 "reference_type": "opening",
                 "reference_id": "",
             })
-
+                
         # Each event is applied to the state before it is written.
+        if event_count < 1:
+            raise ValueError(
+                "At least one non-opening movement is required."
+            )
+
         for offset in range(event_count):
-            state = movement_rng.choice(states)
-            available = state["on_hand"] - state["blocked"]
-
-            choices = ["receipt", "return", "sale", "damage"]
-            weights = [35, 15, 40, 10]
-            if available < 1:
-                choices, weights = ["receipt", "return"], [70, 30]
-
-            kind = movement_rng.choices(choices, weights=weights, k=1)[0]
-            qty = movement_rng.randint(1, 10)
-
-            if kind == "sale":
-                qty = min(qty, available)
-                if qty < 1:
-                    kind = "receipt"
-                else:
-                    state["on_hand"] -= qty
-            elif kind in ("receipt", "return"):
-                state["on_hand"] += qty
-            elif kind == "damage":
-                qty = min(qty, max(1, available))
+            if offset == 0:
+                # Guarantee one blocked-stock balance through a real
+                # damage movement, keeping movement history consistent.
+                state = states[0]
+                kind = "damage"
+                qty = 1
                 state["blocked"] += qty
+            else:
+                state = movement_rng.choice(states)
+                available = state["on_hand"] - state["blocked"]
+
+                choices = ["receipt", "return", "sale", "damage"]
+                weights = [35, 15, 40, 10]
+                if available < 1:
+                    choices, weights = ["receipt", "return"], [70, 30]
+
+                kind = movement_rng.choices(
+                    choices, weights=weights, k=1
+                )[0]
+                qty = movement_rng.randint(1, 10)
+
+                if kind == "sale":
+                    qty = min(qty, available)
+                    if qty < 1:
+                        kind = "receipt"
+                    else:
+                        state["on_hand"] -= qty
+                elif kind in ("receipt", "return"):
+                    state["on_hand"] += qty
+                elif kind == "damage":
+                    qty = min(qty, max(1, available))
+                    state["blocked"] += qty
 
             movement_id += 1
             writer.writerow({
@@ -146,10 +161,13 @@ def generate_data(output_dir, num_skus=5000, num_locations=100,
                 "location_id": state["location_id"],
                 "movement_type": kind,
                 "quantity": qty,
-                "occurred_at": (start + timedelta(seconds=movement_id)).isoformat(),
+                "occurred_at": (
+                    start + timedelta(seconds=movement_id)
+                ).isoformat(),
                 "reference_type": "synthetic_event",
                 "reference_id": "",
             })
+
 
     # 3. Balances derived from opening stock and movement history.
     balances = []
@@ -215,13 +233,19 @@ def generate_data(output_dir, num_skus=5000, num_locations=100,
             "expires_at": (start + timedelta(days=1)).isoformat(),
         })
         shipments.append({
-            "shipment_id": i,
-            "shipment_code": f"SHP-2026-{i:06d}",
-            "order_id": order["order_id"],
-            "origin_location_id": order["location_id"],
-            "destination_location_id": "",
-            "status": rng.choice(["created", "in_transit", "delivered"]),
-        })
+    "shipment_id": i,
+    "shipment_code": f"SHP-2026-{i:06d}",
+    "order_id": order["order_id"],
+    "origin_location_id": order["location_id"],
+    "destination_location_id": "",
+    "status": rng.choice(["created", "in_transit", "delivered"]),
+    "dispatch_time": (
+        start + timedelta(days=2)
+    ).isoformat() if i == 1 else "",
+    "receipt_time": (
+        start + timedelta(days=1)
+    ).isoformat() if i == 1 else "",
+})
 
     for i in range(1, num_skus + 1):
         rules.append({
@@ -238,7 +262,7 @@ def generate_data(output_dir, num_skus=5000, num_locations=100,
                "location_id", "quantity", "status", "expires_at"], reservations)
     write_csv(output_dir / "challenge_shipments.csv",
               ["shipment_id", "shipment_code", "order_id", "origin_location_id",
-               "destination_location_id", "status"], shipments)
+ "destination_location_id", "status", "dispatch_time", "receipt_time"], shipments)
     write_csv(output_dir / "challenge_replenishment_rules.csv",
               ["rule_id", "sku_id", "location_id", "reorder_point",
                "reorder_quantity", "active"], rules)

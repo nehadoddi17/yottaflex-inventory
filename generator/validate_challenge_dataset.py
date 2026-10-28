@@ -202,6 +202,63 @@ def validate(folder):
 
     if any(row["expected_label"] != "1" for row in ground_truth):
         errors.append("Ground-truth contains an unexpected label")
+     # 6. Verify concrete ground-truth anomaly conditions.
+    balances_by_key = {
+        (row["sku_id"], row["location_id"]): row
+        for row in balances
+    }
+    shipments_by_code = {
+        row["shipment_code"]: row
+        for row in shipments
+    }
+    cases_by_id = {
+        row["scenario_id"]: row
+        for row in anomaly_cases
+    }
+
+    # GT-001: Recorded/test stock differs from expected stock.
+    case = cases_by_id.get("GT-001")
+    if case is None or int(case["test_on_hand"]) == int(
+        case["expected_on_hand"]
+    ):
+        errors.append("GT-001 does not demonstrate a balance mismatch")
+
+    # GT-002: Requested reservation exceeds the stated ATP.
+    case = cases_by_id.get("GT-002")
+    if case is None or int(case["test_quantity"]) <= int(
+        case["available_to_promise"]
+    ):
+        errors.append("GT-002 does not exceed ATP")
+
+    # GT-003: Fixture references a real balance with blocked stock.
+    case = cases_by_id.get("GT-003")
+    if case is None:
+        errors.append("GT-003 fixture is missing")
+    else:
+        key = (case["source_sku_id"], case["source_location_id"])
+        balance = balances_by_key.get(key)
+        if balance is None:
+            errors.append("GT-003 references an unknown balance")
+        elif int(balance["blocked"]) <= 0:
+            errors.append("GT-003 balance has no blocked stock")
+        elif int(case["test_quantity"]) <= 0:
+            errors.append("GT-003 attempted allocation is not positive")
+
+    # GT-004: The actual shipment timestamps must be out of order.
+    case = cases_by_id.get("GT-004")
+    if case is None:
+        errors.append("GT-004 fixture is missing")
+    else:
+        shipment = shipments_by_code.get(case["source_shipment_id"])
+        if shipment is None:
+            errors.append("GT-004 references an unknown shipment")
+        elif not shipment.get("dispatch_time") or not shipment.get(
+            "receipt_time"
+        ):
+            errors.append("GT-004 shipment timestamps are missing")
+        elif shipment["receipt_time"] >= shipment["dispatch_time"]:
+            errors.append("GT-004 shipment receipt is not before dispatch")
+
 
     # Summary.
     print(f"Products: {len(products)}")

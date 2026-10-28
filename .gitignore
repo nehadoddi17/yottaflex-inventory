@@ -22,3 +22,14 @@ htmlcov/
 
 # Generated CSV datasets
 generator/*.csv
+
+# Generated challenge datasets and temporary test outputs
+generator/challenge_output_v2/
+generator/gt_test/
+generator/gt_test_repeat/
+generator/reproducibility_check/
+
+# Ignore CSV files in generated subdirectories
+generator/**/challenge_*.csv
+generator/**/ground_truth.csv
+generator/**/anomaly_cases.csv
