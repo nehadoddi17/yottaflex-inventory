@@ -1,5 +1,8 @@
 # AI Usage and Prompt History
 
+**Tool:** ChatGPT  
+**Purpose:** Understanding requirements, learning technical concepts, implementation guidance, debugging, testing, documentation, and GitHub workflow.
+
 ## 1. Understanding the Problem and Selecting Technologies
 
 As a fresher, I used ChatGPT to understand unfamiliar technical terms in the challenge and break the requirements into manageable tasks.
