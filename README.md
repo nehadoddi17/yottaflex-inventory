@@ -1,43 +1,48 @@
 # YottaFlex Inventory Management
 
+A Python-based inventory management and reconciliation prototype built with FastAPI, PostgreSQL, SQLAlchemy, and a reproducible synthetic dataset.
+
 ## Understanding the Problem
 
-Businesses often store products across multiple stores, warehouses, and online channels. Keeping inventory accurate across all these locations can be challenging. For example, a system may show that a product is available even though some units are already reserved for customer orders, damaged, or still being transported.
+Businesses often store products across multiple stores, warehouses, and online channels. Keeping inventory accurate across all these locations can be challenging. For example, some products may already be reserved for customer orders, blocked because they are damaged, or still in transit.
 
-I understood this challenge as a problem of bringing inventory information together, calculating what is actually available, and identifying differences between recorded stock and stock movement history.
+This project addresses the challenge of tracking inventory, calculating how much stock is available to promise to customers, and identifying differences between recorded stock and inventory movement history.
 
-This project demonstrates an approach to that problem using Python, FastAPI, PostgreSQL, and a reproducible synthetic inventory dataset. It includes inventory APIs, reconciliation logic, data validation, and a lightweight web dashboard.
+It demonstrates these concepts using Python, FastAPI, PostgreSQL, automated tests, and a lightweight web dashboard.
 
-## How This Applies to the Real World
+## Real-World Application
 
-A retailer with several stores and warehouses needs to know how much stock it can promise to customers, where inventory discrepancies exist, and whether incoming stock can be relied upon. An inventory reconciliation system can help identify inconsistencies, reduce incorrect availability information, and support better replenishment and fulfilment decisions.
+Retailers need accurate inventory information to fulfil customer orders, identify stock discrepancies, and make better replenishment decisions.
 
-This project uses synthetic data to demonstrate these concepts. It is a prototype for exploring inventory workflows, not a production system connected to a real retailer.
+An inventory reconciliation system can help compare recorded stock with expected stock, identify inconsistencies, and provide clearer visibility into available inventory.
 
-## Important Terms 
+This project uses synthetic data to demonstrate these workflows. It is a prototype and is not connected to a real retailer's inventory system.
+
+## Important Terms
 
 - **Inventory balance:** The quantity of a product recorded at a particular location.
-- **Inventory movement:** A transaction that changes stock, such as receiving, selling, transferring, or damaging goods.
-- **Available-to-Promise (ATP):** The quantity that can be promised to customers after accounting for relevant stock deductions and eligible incoming inventory.
+- **Inventory movement:** A transaction that changes stock, such as receiving, selling, or transferring goods.
+- **Available-to-Promise (ATP):** The quantity available to promise to customers after accounting for relevant stock deductions and eligible incoming inventory.
 - **Reserved stock:** Inventory allocated to existing orders.
-- **Blocked stock:** Inventory that must not be treated as available for normal fulfilment, such as damaged or quarantined goods.
-- **Safety stock:** A quantity kept as a buffer against uncertainty in demand or supply.
-- **Inventory reconciliation:** Comparing recorded inventory with the quantity expected from inventory movements to identify discrepancies.
-- **Ground-truth anomaly:** A known example of an inventory issue used to test whether validation logic can identify or verify that issue.
+- **Blocked stock:** Inventory that must not be treated as available for normal fulfilment.
+- **Safety stock:** Extra inventory kept as a buffer against uncertainty in demand or supply.
+- **Inventory reconciliation:** Comparing recorded inventory with expected inventory to identify discrepancies.
+- **Ground-truth anomaly:** A known example of an inventory issue used to test validation logic.
 
 ## What I Built
 
 - A FastAPI backend for inventory lookup and reconciliation.
 - PostgreSQL database integration for inventory records.
-- ATP calculation and inventory-related logic.
+- Available-to-Promise (ATP) calculations.
+- Inventory movement, reservation, and stock-transfer services.
 - A configurable synthetic data generator and dataset validation pipeline.
-- Four labelled anomaly scenarios for testing and review.
-- A lightweight HTML, CSS, and JavaScript dashboard for interacting with the APIs.
-
+- Four labelled anomaly scenarios.
+- A lightweight HTML, CSS, and JavaScript dashboard.
+- Automated tests using pytest.
 
 ## Technology Stack
 
-- Python
+- Python 3.10
 - FastAPI and Uvicorn
 - SQLAlchemy
 - PostgreSQL
@@ -48,96 +53,133 @@ This project uses synthetic data to demonstrate these concepts. It is a prototyp
 
 ## Features
 
-- Synthetic product, SKU, location, balance, movement, order, reservation, shipment, and replenishment data.
-- Configurable dataset generation with a fixed random seed.
+- Synthetic product, SKU, location, inventory balance, movement, order, reservation, shipment, and replenishment data.
+- Configurable dataset generation using a fixed random seed.
 - ATP calculation using on-hand, reserved, blocked, safety-stock, and approved-inbound quantities.
 - Inventory movement recording.
 - Reservation creation and expiry processing.
 - Inventory reconciliation against movement history.
 - Stock-transfer dispatch and receipt services.
-- Primary-key, foreign-key, quantity, arithmetic, movement-history, and ground-truth validation.
-- Four labelled anomaly scenarios.
+- Data validation covering keys, quantities, arithmetic, movement history, and labelled anomaly scenarios.
 - Browser dashboard for inventory lookup and reconciliation.
 
 ## Project Structure
 
 ```text
-app/
-  main.py
-  database.py
-  init_db.py
-  models.py
-  seed_sample.py
-  services/
-  static/
-    index.html
-generator/
-  generate_challenge_data.py
-  validate_challenge_dataset.py
-tests/
-docs/
-requirements.txt
-README.md
-.gitignore
+yottaflex-inventory/
+├── app/
+│   ├── main.py
+│   ├── database.py
+│   ├── init_db.py
+│   ├── models.py
+│   ├── seed_sample.py
+│   ├── services/
+│   └── static/
+│       └── index.html
+├── generator/
+│   ├── generate_challenge_data.py
+│   └── validate_challenge_dataset.py
+├── tests/
+├── docs/
+├── requirements.txt
+├── README.md
+├── AI_USAGE.md
+└── .gitignore
 ```
 
 ## Prerequisites
 
-- Python 3.10 or compatible version
-- PostgreSQL configured for the application
-- Git, if cloning the repository
+Install the following before running the project:
+
+- Python 3.10 or a compatible version.
+- PostgreSQL.
+- Git, if cloning the repository.
+- A PostgreSQL username and password with permission to use the project database.
 
 ## Setup
 
-Clone the repository and enter the project directory:
+### 1. Clone the repository
 
-```bash
+Open PowerShell or the VS Code terminal and run:
+
+```powershell
 git clone https://github.com/nehadoddi17/yottaflex-inventory.git
 cd yottaflex-inventory
 ```
 
-Create and activate a virtual environment.
-
-Windows PowerShell:
+### 2. Create and activate a virtual environment
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+### 3. Install dependencies
 
-```bash
+```powershell
 python -m pip install -r requirements.txt
 ```
 
-Configure your local PostgreSQL connection using the environment settings expected by `app/database.py`. Keep credentials in a local `.env` file and never commit secrets.
+### 4. Configure PostgreSQL
 
-Initialize the database using the project's database initialization script:
+Make sure PostgreSQL is installed and running.
 
-```bash
+Create a database named `yottaflex_inventory` if it does not already exist. You can create it using a PostgreSQL administration tool or the PostgreSQL command line.
+
+For example, if your PostgreSQL user has permission to create databases:
+
+```powershell
+createdb -U postgres yottaflex_inventory
+```
+
+Replace `postgres` with your PostgreSQL username if needed. If the database already exists, skip this command.
+
+Create a `.env` file in the project root directory, in the same folder as `README.md`.
+
+Add your local PostgreSQL connection settings:
+
+```env
+DB_USER=your_postgres_username
+DB_PASSWORD=your_postgres_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=yottaflex_inventory
+```
+
+Replace the example username and password with your actual PostgreSQL credentials. The host and port shown above are the defaults used by the application.
+
+**Important:** Keep `.env` private. Never commit database passwords, API keys, or other secrets to GitHub.
+
+### 5. Initialize the database
+
+With the virtual environment activated and the PostgreSQL database configured, run:
+
+```powershell
 python -m app.init_db
 ```
 
-If the project requires an existing PostgreSQL database, create it before running the initialization command.
+This runs the project's database initialization script.
 
 ## Run the API and Dashboard
 
-Start the application from the repository root:
+From the project root, start the FastAPI application:
 
-```bash
+```powershell
 python -m uvicorn app.main:app --reload
 ```
 
-Open the dashboard:
+Keep the terminal open while using the application.
 
-- http://127.0.0.1:8000/
+Open the following URLs in your browser:
 
-Open the interactive API documentation:
+| Resource | URL |
+|---|---|
+| Inventory dashboard | http://127.0.0.1:8000/ |
+| Interactive API documentation | http://127.0.0.1:8000/docs |
+| Health check | http://127.0.0.1:8000/health |
+| Database connection check | http://127.0.0.1:8000/db-check |
 
-- http://127.0.0.1:8000/docs
-
-Useful endpoints include:
+Useful API endpoints include:
 
 - `GET /health`
 - `GET /db-check`
@@ -147,63 +189,103 @@ Useful endpoints include:
 - `POST /reservations/expire`
 - `GET /inventory/reconcile`
 
+The dashboard and API use the inventory records available in the configured PostgreSQL database.
+
+To stop the development server, press `Ctrl + C` in the terminal running Uvicorn.
+
 ## Generate a Small Dataset
 
-Run the generator from the repository root:
+A small dataset is useful for quickly checking the data generator and validator without generating the full challenge dataset.
+
+Run:
 
 ```powershell
 python generator/generate_challenge_data.py --skus 20 --locations 5 --orders 10 --movements 120 --seed 20261022 --output generator/gt_test
 ```
 
-The output directory contains generated CSV files and supporting metadata.
+The generator creates CSV files and supporting metadata in the specified output directory.
 
 ## Generate the Full-Scale Dataset
 
-The following command generates the challenge-scale dataset:
+To reproduce the challenge-scale dataset, run:
 
 ```powershell
 python generator/generate_challenge_data.py --skus 5000 --locations 100 --orders 50000 --movements 1000000 --seed 20261022 --output generator/challenge_output_v2
 ```
 
-Large dataset generation can take time and requires sufficient disk space. Generated datasets are intentionally excluded from Git; reproduce them locally when needed.
+This operation can take time and requires sufficient disk space.
+
+Generated datasets are excluded from Git, so they can be reproduced locally using the generator and its parameters.
 
 ## Validate a Dataset
+
+Validate the small dataset:
 
 ```powershell
 python generator/validate_challenge_dataset.py generator/gt_test
 ```
 
-To validate the full-scale output:
+Validate the full-scale dataset:
 
 ```powershell
 python generator/validate_challenge_dataset.py generator/challenge_output_v2
 ```
 
-The current full-scale validation run completed with zero reported errors. Its reported counts included 5,000 products, 5,000 SKUs, 100 locations, 500,000 balances, 1,000,000 movements, 50,000 orders and order lines, 1,000 reservations, 1,000 shipments, 5,000 replenishment rules, and four ground-truth cases.
+The full-scale validation run completed with zero reported errors.
 
-## Run Tests
+The reported dataset counts included:
+
+- 5,000 products.
+- 5,000 SKUs.
+- 100 locations.
+- 500,000 inventory balances.
+- 1,000,000 inventory movements.
+- 50,000 orders and order lines.
+- 1,000 reservations.
+- 1,000 shipments.
+- 5,000 replenishment rules.
+- Four ground-truth anomaly cases.
+
+## Run Automated Tests
+
+From the project root, run:
+
+```powershell
+python -m pytest -v
+```
+
+Or use the shorter output format:
 
 ```powershell
 python -m pytest -q
 ```
 
-The backend test suite most recently reported 12 passing tests.
+The verified test suite currently contains **12 passing tests** covering selected ATP calculations, stock validation, reconciliation, reservation expiry, and transfer operations.
 
 ## ATP Calculation
 
-The implemented ATP calculation is:
+The implemented Available-to-Promise calculation is:
 
 ```text
 ATP = on_hand - reserved - blocked - safety_stock + approved_inbound
 ```
 
-For example, with 120 on-hand, 15 reserved, 5 blocked, 10 safety stock, and zero approved inbound:
+For example, if inventory has:
+
+- On-hand stock: 120
+- Reserved stock: 15
+- Blocked stock: 5
+- Safety stock: 10
+- Approved inbound stock: 0
+
+The calculation is:
 
 ```text
-ATP = 120 - 15 - 5 - 10 + 0 = 90
+ATP = 120 - 15 - 5 - 10 + 0
+ATP = 90
 ```
 
-Approved inbound must follow the application's eligibility rules; it should not include unapproved or otherwise ineligible stock.
+Therefore, 90 units are available to promise under these assumptions. Incoming stock should be included only when it meets the application's eligibility rules.
 
 ## Anomaly Scenarios
 
@@ -214,30 +296,46 @@ The generated ground-truth fixtures represent four anomaly categories:
 3. An allocation attempts to use blocked stock.
 4. A transfer receipt timestamp precedes its dispatch timestamp.
 
-These fixtures provide labelled scenarios for validation. They should not be interpreted as proof that every anomaly is automatically detected end-to-end. The blocked-stock scenario is currently a fixture referencing a balance with blocked inventory, rather than a persisted allocation event.
+These fixtures provide labelled examples for validation and review. They do not prove that every anomaly is automatically detected through a complete application workflow. In particular, the blocked-stock scenario references a balance containing blocked inventory rather than a persisted allocation event.
 
 ## Reproducibility
 
-The generator accepts a configurable seed. Using seed `20261022` with the same parameters produced matching SHA-256 hashes for all 12 CSV files in a repeated small-scale generation test.
+The generator accepts a configurable random seed.
 
-For reproducibility checks, compare the SHA-256 hashes of each corresponding CSV file.
+Using seed `20261022` with the same parameters produced matching SHA-256 hashes for all 12 CSV files in a repeated small-scale generation test.
+
+To verify reproducibility, generate the same dataset twice using identical parameters and compare the corresponding CSV file hashes.
 
 ## Data Safety
 
-All generated challenge records are synthetic. Never commit real customer data, credentials, API keys, passwords, or database secrets.
+All generated challenge records are synthetic.
+
+- Keep database credentials and secrets in your local `.env` file.
+- Do not commit real customer information, passwords, API keys, or database secrets.
+- Generated challenge datasets are excluded from Git and can be recreated locally.
 
 ## Known Limitations
 
-- The anomaly fixtures are not all persisted operational events.
-- The dashboard currently supports SKU/location stock lookup and reconciliation; the summary cards reflect the selected SKU and location, not network-wide aggregate totals.
-- End-to-end testing of every reservation and transfer lifecycle is still needed.
-- Database schema initialization uses the existing project setup; a production migration strategy would be a future improvement.
+- **Anomaly scenarios:** Four labelled anomaly examples are included, but not all are connected to complete application workflows or automatically detected end to end.
+- **Dashboard scope:** The dashboard displays inventory for a selected SKU and location rather than network-wide totals.
+- **Testing coverage:** The 12 automated tests cover selected backend behaviours. Additional end-to-end tests are needed to verify every reservation and transfer scenario.
+- **Database setup:** The project uses basic database initialization. A formal migration process would help manage future schema changes.
 
 ## Current Status
 
 - Full-scale synthetic dataset generated and validated with zero reported errors.
 - Small-scale dataset reproducibility verified for all 12 CSV files.
 - Backend test suite: 12 tests passing.
-- Health and database connectivity endpoints returned successful responses.
+- Health and database connectivity endpoints verified.
 - ATP lookup and inventory reconciliation tested through the browser dashboard.
-- The project and AI usage documentation have been pushed to the public GitHub repository. Final review of the challenge requirements and remaining limitations is still recommended.
+- Project and AI usage documentation pushed to the public GitHub repository.
+
+## AI Usage and Development Notes
+
+See [AI_USAGE.md](AI_USAGE.md) for information about AI-assisted development, implementation decisions, testing, and acknowledged limitations.
+
+## Screenshots and Verification Evidence
+
+Screenshots of the running inventory dashboard, API documentation, automated test results, and dataset validation output are available in the [`screenshots/`](screenshots/) directory.
+
+These screenshots provide visual evidence of the application's functionality and verification results.
