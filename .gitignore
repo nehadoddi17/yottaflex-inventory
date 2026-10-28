@@ -1,0 +1,24 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Generated datasets and test outputs
+generator/test_output/
+generator/test_output_v2/
+generator/test_output_v3/
+generator/test_output_v3_repeat/
+generator/test_output_medium/
+generator/challenge_output/
+
+# Local environment files
+.env.*
+!.env.example
+
+# Python and test artifacts
+.coverage
+htmlcov/
+
+# Generated CSV datasets
+generator/*.csv
