@@ -68,24 +68,42 @@ This project uses synthetic data to demonstrate these workflows. It is a prototy
 ```text
 yottaflex-inventory/
 ├── app/
+│   ├── services/
+│   ├── static/
+│   │   └── index.html
 │   ├── main.py
 │   ├── database.py
 │   ├── init_db.py
 │   ├── models.py
-│   ├── seed_sample.py
-│   ├── services/
-│   └── static/
-│       └── index.html
+│   └── seed_sample.py
+├── docs/
+│   ├── DATA_DICTIONARY.md
+│   └── SCHEMA.md
 ├── generator/
 │   ├── generate_challenge_data.py
-│   └── validate_challenge_dataset.py
+│   └── dataset validation scripts
+├── screenshots/
+│   ├── API Documentation.png
+│   ├── Dataset Validation.png
+│   ├── Inventory Dashboard.png
+│   └── Result.png
 ├── tests/
-├── docs/
-├── requirements.txt
-├── README.md
+│   ├── test_inventory.py
+│   ├── test_reconciliation.py
+│   ├── test_reservations.py
+│   └── test_transfers.py
 ├── AI_USAGE.md
+├── README.md
+├── requirements.txt
 └── .gitignore
 ```
+
+- **`app/`** — FastAPI application, database configuration, models, and business services.
+- **`docs/`** — Data dictionary and database schema documentation.
+- **`generator/`** — Synthetic dataset generation and validation scripts.
+- **`screenshots/`** — Screenshots showing the dashboard, API documentation, test results, and dataset validation.
+- **`tests/`** — Automated tests for inventory, reconciliation, reservations, and transfers.
+- **`AI_USAGE.md`** — Documentation of AI-assisted development and validation.
 
 ## Prerequisites
 
@@ -334,8 +352,11 @@ All generated challenge records are synthetic.
 
 See [AI_USAGE.md](AI_USAGE.md) for information about AI-assisted development, implementation decisions, testing, and acknowledged limitations.
 
-## Screenshots and Verification Evidence
+## Project in Action
 
-Screenshots of the running inventory dashboard, API documentation, automated test results, and dataset validation output are available in the [`screenshots/`](screenshots/) directory.
+Explore the project visuals in the [`project-showcase/`](project-showcase/) folder.
 
-These screenshots provide visual evidence of the application's functionality and verification results.
+- **Inventory Dashboard** — View the inventory interface.
+- **API Documentation** — Explore the available API endpoints.
+- **Dataset Validation** — Review dataset validation results.
+- **Reconciliation Results** — See the generated output and verification results.
