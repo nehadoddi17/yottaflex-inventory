@@ -1,12 +1,39 @@
 # YottaFlex Inventory Management
 
-A synthetic inventory management, reconciliation, and data-quality validation project built with FastAPI, SQLAlchemy, PostgreSQL, and Python.
+## Understanding the Problem
 
-## Overview
+Businesses often store products across multiple stores, warehouses, and online channels. Keeping inventory accurate across all these locations can be challenging. For example, a system may show that a product is available even though some units are already reserved for customer orders, damaged, or still being transported.
 
-This project demonstrates unified inventory tracking across locations, inventory movements, available-to-promise (ATP) calculations, reservations, stock transfers, and reconciliation. It also includes a reproducible synthetic data generator and a validation pipeline for large inventory datasets.
+I understood this challenge as a problem of bringing inventory information together, calculating what is actually available, and identifying differences between recorded stock and stock movement history.
 
-A lightweight web dashboard provides stock lookup and inventory reconciliation through the FastAPI backend.
+This project demonstrates an approach to that problem using Python, FastAPI, PostgreSQL, and a reproducible synthetic inventory dataset. It includes inventory APIs, reconciliation logic, data validation, and a lightweight web dashboard.
+
+## How This Applies to the Real World
+
+A retailer with several stores and warehouses needs to know how much stock it can promise to customers, where inventory discrepancies exist, and whether incoming stock can be relied upon. An inventory reconciliation system can help identify inconsistencies, reduce incorrect availability information, and support better replenishment and fulfilment decisions.
+
+This project uses synthetic data to demonstrate these concepts. It is a prototype for exploring inventory workflows, not a production system connected to a real retailer.
+
+## Important Terms 
+
+- **Inventory balance:** The quantity of a product recorded at a particular location.
+- **Inventory movement:** A transaction that changes stock, such as receiving, selling, transferring, or damaging goods.
+- **Available-to-Promise (ATP):** The quantity that can be promised to customers after accounting for relevant stock deductions and eligible incoming inventory.
+- **Reserved stock:** Inventory allocated to existing orders.
+- **Blocked stock:** Inventory that must not be treated as available for normal fulfilment, such as damaged or quarantined goods.
+- **Safety stock:** A quantity kept as a buffer against uncertainty in demand or supply.
+- **Inventory reconciliation:** Comparing recorded inventory with the quantity expected from inventory movements to identify discrepancies.
+- **Ground-truth anomaly:** A known example of an inventory issue used to test whether validation logic can identify or verify that issue.
+
+## What I Built
+
+- A FastAPI backend for inventory lookup and reconciliation.
+- PostgreSQL database integration for inventory records.
+- ATP calculation and inventory-related logic.
+- A configurable synthetic data generator and dataset validation pipeline.
+- Four labelled anomaly scenarios for testing and review.
+- A lightweight HTML, CSS, and JavaScript dashboard for interacting with the APIs.
+
 
 ## Technology Stack
 
