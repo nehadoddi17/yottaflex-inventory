@@ -350,7 +350,7 @@ All generated challenge records are synthetic.
 
 ## AI Usage and Development Notes
 
-See [AI_USAGE.md](AI_USAGE.md) for information about AI-assisted development, implementation decisions, testing, and acknowledged limitations.
+See [AI_PROMPT_HISTORY.md](AI_PROMPT_HISTORY.md) for information about AI-assisted development, implementation decisions, testing, and acknowledged limitations.
 
 ## Project in Action
 
